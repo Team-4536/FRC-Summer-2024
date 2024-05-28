@@ -1,4 +1,4 @@
-cd C:\repos\FRC-2024
+cd C:\repos\FRC-Summer-2024
 
 rem delete .venv
 RD /s /q .\.venv
