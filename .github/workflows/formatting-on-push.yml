@@ -5,5 +5,6 @@ jobs:
   format-with-Black:
     runs-on: windows-latest
     steps:
+      - run: dir
       - run: python -m pip install black
       - run: black ./FRC-Summer-2024/src
