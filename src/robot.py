@@ -149,8 +149,9 @@ class Robot(wpilib.TimedRobot):
         self.hardware.update(self.hal, self.time)
 
     def disabledInit(self) -> None:
-        self.disabledPeriodic()
+      self.disabledPeriodic()
 
     def disabledPeriodic(self) -> None:
-        self.hal.stopMotors()
+        self.hal.stopMotors()               
+
         self.hardware.update(self.hal, self.time)
