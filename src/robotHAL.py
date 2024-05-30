@@ -28,10 +28,6 @@ class RobotHAL():
     def __init__(self) -> None:
         self.prev = RobotHALBuffer()
 
-    def resetGyroToAngle(self, ang: float) -> None:
-        self.gyro.reset()
-        self.gyro.setAngleAdjustment(-math.degrees(ang))
-
     def update(self, buf: RobotHALBuffer, time: TimeData) -> None:
         prev = self.prev
         self.prev = copy.deepcopy(buf)
