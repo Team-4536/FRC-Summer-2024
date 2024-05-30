@@ -15,7 +15,7 @@ from wpimath.geometry import Pose2d, Rotation2d, Translation2d
 from wpimath.kinematics import ChassisSpeeds, SwerveModulePosition
 
 
-class RobotInputs():
+class RobotInputs:
     TARGET_NONE = 0
     TARGET_LEFT = 1
     TARGET_RIGHT = 2
@@ -60,22 +60,24 @@ class Robot(wpilib.TimedRobot):
 
         self.drive = None
 
-        self.driveGyroYawOffset = 0.0 # the last angle that drivers reset the field oriented drive to zero at
-        
+        self.driveGyroYawOffset = (
+            0.0  # the last angle that drivers reset the field oriented drive to zero at
+        )
 
         self.autoSideChooser = wpilib.SendableChooser()
-        wpilib.SmartDashboard.putData('auto side chooser', self.autoSideChooser)
+        wpilib.SmartDashboard.putData("auto side chooser", self.autoSideChooser)
 
         self.odomField = wpilib.Field2d()
         wpilib.SmartDashboard.putData("odom", self.odomField)
 
-        #kp can be 4 if wanted
+        # kp can be 4 if wanted
         self.turnPID = PIDController("turnPID", 3, 0, 0)
         self.ang = 0
 
-        self.frontLimelightTable = NetworkTableInstance.getDefault().getTable("limelight-front")
+        self.frontLimelightTable = NetworkTableInstance.getDefault().getTable(
+            "limelight-front"
+        )
         self.robotPoseTable = NetworkTableInstance.getDefault().getTable("robot pose")
-
 
     def robotPeriodic(self) -> None:
         profiler.start()
@@ -87,7 +89,7 @@ class Robot(wpilib.TimedRobot):
         self.drive.updateOdometry(self.hal)
 
         pose = self.drive.odometry.getPose()
-        self.table.putNumber("odomX", pose.x )
+        self.table.putNumber("odomX", pose.x)
         self.table.putNumber("odomY", pose.y)
         self.odomField.setRobotPose(pose)
 
@@ -95,7 +97,6 @@ class Robot(wpilib.TimedRobot):
         self.table.putNumber("ctrl/absOffset", self.driveGyroYawOffset)
         self.table.putNumber("ctrl/driveX", self.input.driveX)
         self.table.putNumber("ctrl/driveY", self.input.driveY)
-
 
         updatePIDsInNT()
         self.table.putNumber("Offset yaw", -self.hal.yaw + self.driveGyroYawOffset)
@@ -109,14 +110,23 @@ class Robot(wpilib.TimedRobot):
 
         speedControlEdited = lerp(1, 5.0, self.input.speedCtrl)
         turnScalar = 6
-        driveVector = Translation2d(self.input.driveX * speedControlEdited, self.input.driveY * speedControlEdited)
-        turnVector = Translation2d(self.input.turningY, self.input.turningX) #for pid only
-        #absolute drive
+        driveVector = Translation2d(
+            self.input.driveX * speedControlEdited,
+            self.input.driveY * speedControlEdited,
+        )
+        turnVector = Translation2d(
+            self.input.turningY, self.input.turningX
+        )  # for pid only
+        # absolute drive
         if self.abs:
-            driveVector = driveVector.rotateBy(Rotation2d(-self.hal.yaw + self.driveGyroYawOffset))
+            driveVector = driveVector.rotateBy(
+                Rotation2d(-self.hal.yaw + self.driveGyroYawOffset)
+            )
 
-        #disable pid when stick moved
-        if (self.input.turningX != 0 and self.rightStickToggle == False) or self.input.lineUpWithSubwoofer:
+        # disable pid when stick moved
+        if (
+            self.input.turningX != 0 and self.rightStickToggle == False
+        ) or self.input.lineUpWithSubwoofer:
             self.PIDtoggle = False
 
         self.drive.update(self.time.dt, self.hal, speed)
@@ -130,9 +140,14 @@ class Robot(wpilib.TimedRobot):
 
         self.holonomicController = PPHolonomicDriveController(
             PIDConstants(1, 0, 0),
-            PIDConstants(self.turnPID.kp, self.turnPID.ki, self.turnPID.kd,),
+            PIDConstants(
+                self.turnPID.kp,
+                self.turnPID.ki,
+                self.turnPID.kd,
+            ),
             5.0,
-            self.drive.modulePositions[0].distance(Translation2d()))
+            self.drive.modulePositions[0].distance(Translation2d()),
+        )
 
         self.auto, initialPose = self.autoSubsys.autoInit(self)
 
@@ -141,7 +156,6 @@ class Robot(wpilib.TimedRobot):
         self.hardware.update(self.hal, self.time)
         self.drive.resetOdometry(initialPose, self.hal)
         self.holonomicController.reset(initialPose, ChassisSpeeds())
-        
 
     def autonomousPeriodic(self) -> None:
         self.hal.stopMotors()
@@ -149,9 +163,9 @@ class Robot(wpilib.TimedRobot):
         self.hardware.update(self.hal, self.time)
 
     def disabledInit(self) -> None:
-      self.disabledPeriodic()
+        self.disabledPeriodic()
 
     def disabledPeriodic(self) -> None:
-        self.hal.stopMotors()               
+        self.hal.stopMotors()
 
         self.hardware.update(self.hal, self.time)

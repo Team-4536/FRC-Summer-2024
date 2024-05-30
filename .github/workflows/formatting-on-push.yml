@@ -1,5 +1,5 @@
 name: formatting-on-push
-run-name: ${{ github.actor }} is learning GitHub Actions
+run-name: Formatting?
 on: [push]
 jobs:
   format-with-Black:
