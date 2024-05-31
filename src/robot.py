@@ -1,5 +1,6 @@
 import math
 
+import autoUtils
 import profiler
 import robotHAL
 import wpilib
@@ -53,6 +54,7 @@ class Robot(wpilib.TimedRobot):
         else:
             self.hardware = robotHAL.RobotHAL()
         self.hardware.update(self.hal, self.time)
+        self.autoRunner = autoUtils.AutoManager()
 
         self.table = NetworkTableInstance.getDefault().getTable("telemetry")
 
@@ -124,28 +126,20 @@ class Robot(wpilib.TimedRobot):
         self.hardware.update(self.hal, self.time)
 
     def autonomousInit(self) -> None:
-        # when simulating, initalize sim to have a preloaded ring
-        if isinstance(self.hardware, RobotSimHAL):
-            pass
+        self.resetGyroAndOdomToPose(Pose2d())
+        self.autoRunner.chooseAuto(self)
 
-        self.holonomicController = PPHolonomicDriveController(
-            PIDConstants(1, 0, 0),
-            PIDConstants(self.turnPID.kp, self.turnPID.ki, self.turnPID.kd,),
-            5.0,
-            self.drive.modulePositions[0].distance(Translation2d()))
-
-        self.auto, initialPose = self.autoSubsys.autoInit(self)
-
-        self.driveGyroYawOffset = initialPose.rotation().radians()
-        self.hardware.resetGyroToAngle(initialPose.rotation().radians())
+    # NOTE: this pushes anything currently in the HAL and messes with a lot of hardware, please please please
+    # only use in the beginning of autos to start the robot correctly
+    def resetGyroAndOdomToPose(self, pose: Pose2d) -> None:
+        self.driveGyroYawOffset = pose.rotation().radians()
+        self.hardware.resetGyroToAngle(pose.rotation().radians())
         self.hardware.update(self.hal, self.time)
-        self.drive.resetOdometry(initialPose, self.hal)
-        self.holonomicController.reset(initialPose, ChassisSpeeds())
-        
+        self.drive.resetOdom(pose, self.hal)
 
     def autonomousPeriodic(self) -> None:
         self.hal.stopMotors()
-        self.auto.run(self)
+        self.autoRunner.runAuto()
         self.hardware.update(self.hal, self.time)
 
     def disabledInit(self) -> None:
