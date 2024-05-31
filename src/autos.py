@@ -1,7 +1,8 @@
-import robot
-import wpilib
-from ntcore import NetworkTableInstance
+import math
+
 import autoUtils
+import robot
+from wpimath.geometry import Pose2d, Rotation2d
 
 """
 DOCS FOR HOW AUTOS WORK
@@ -33,109 +34,11 @@ DOCS FOR HOW AUTOS WORK
 
 """
 
-def shootStartingRing(r: 'robot.Robot'):
-    yield from autoUtils.intakeUntilRingGot(r)
-    while not autoUtils.prepShooter(r, ShooterTarget.SUBWOOFER, True):
-        yield "waiting on shooter prep"
-    yield from autoUtils.fireShooterUntilDone(r)
-
-def shootThenIntakeCenterRing(r: 'robot.Robot'):
-    middleTraj = autoUtils.loadTrajectory("middle", r.onRedSide)
-    returnTraj = autoUtils.loadTrajectory("middleBack", r.onRedSide)
-    r.resetGyroAndOdomToPose(middleTraj.getInitialTargetHolonomicPose())
-
-    autoUtils.tryResetOdomWithLimelight(r, 0)
-    yield from RobotAutos.shootStartingRing(r)
-    yield from autoUtils.scoreRing(r, middleTraj, returnTraj)
-
-def troll(r: 'robot.Robot'):
-    traj = autoUtils.loadTrajectory("troll", r.onRedSide)
-    r.resetGyroAndOdomToPose(traj.getInitialTargetHolonomicPose())
-
-    autoUtils.tryResetOdomWithLimelight(r, 0)
-    yield from RobotAutos.shootStartingRing(r)
-    yield from autoUtils.runPathUntilDone(r, traj)
-
-def getAllMidUpLow(r: 'robot.Robot'):
-    middleOut = autoUtils.loadTrajectory("middle", r.onRedSide)
-    middleBack = autoUtils.loadTrajectory("middleBack", r.onRedSide)
-    upperOut = autoUtils.loadTrajectory("upper", r.onRedSide)
-    upperBack = autoUtils.loadTrajectory("upperBack", r.onRedSide)
-    lowerOut = autoUtils.loadTrajectory("lower", r.onRedSide)
-    lowerBack = autoUtils.loadTrajectory("lowerBack", r.onRedSide)
-    r.resetGyroAndOdomToPose(middleOut.getInitialTargetHolonomicPose())
-
-    autoUtils.tryResetOdomWithLimelight(r, 0)
-    yield from RobotAutos.shootStartingRing(r)
-    yield from autoUtils.scoreRing(r, middleOut, middleBack)
-    autoUtils.tryResetOdomWithLimelight(r, 0)
-    yield from autoUtils.scoreRing(r, upperOut, upperBack)
-    autoUtils.tryResetOdomWithLimelight(r, 0)
-    yield from autoUtils.scoreRing(r, lowerOut, lowerBack)
-
-def getAllMidLowUp(r: 'robot.Robot'):
-    middleOut = autoUtils.loadTrajectory("middle", r.onRedSide)
-    middleBack = autoUtils.loadTrajectory("middleBack", r.onRedSide)
-    upperOut = autoUtils.loadTrajectory("upper", r.onRedSide)
-    upperBack = autoUtils.loadTrajectory("upperBack", r.onRedSide)
-    lowerOut = autoUtils.loadTrajectory("lower", r.onRedSide)
-    lowerBack = autoUtils.loadTrajectory("lowerBack", r.onRedSide)
-
-    r.resetGyroAndOdomToPose(middleOut.getInitialTargetHolonomicPose())
-
-    autoUtils.tryResetOdomWithLimelight(r, 0)
-    yield from RobotAutos.shootStartingRing(r)
-    yield from autoUtils.scoreRing(r, middleOut, middleBack)
-    autoUtils.tryResetOdomWithLimelight(r, 0)
-    yield from autoUtils.scoreRing(r, lowerOut, lowerBack)
-    autoUtils.tryResetOdomWithLimelight(r, 0)
-    yield from autoUtils.scoreRing(r, upperOut, upperBack)
-
-def exitBackwards(r: 'robot.Robot'):
-    traj = autoUtils.loadTrajectory("exit", r.onRedSide)
-    r.resetGyroAndOdomToPose(traj.getInitialTargetHolonomicPose())
-    yield from autoUtils.runPathUntilDone(r, traj)
-
-def shootAndGetFarMiddle(r: 'robot.Robot'):
-    outTraj = autoUtils.loadTrajectory("far-middle", r.onRedSide)
-    returnTraj = autoUtils.loadTrajectory("far-middle", r.onRedSide)
-    r.resetGyroAndOdomToPose(outTraj.getInitialTargetHolonomicPose())
-
-    autoUtils.tryResetOdomWithLimelight(r, 0)
-    yield from RobotAutos.shootStartingRing(r)
-    yield from autoUtils.scoreRing(r, outTraj, returnTraj)
-
-@staticmethod
-def shootFromUpperSpeakerAndScoreUpperNote(r: 'robot.Robot'):
-    outTraj = autoUtils.loadTrajectory("side-upper", r.onRedSide)
-    returnTraj = autoUtils.loadTrajectory("side-upper-back", r.onRedSide)
-    r.resetGyroAndOdomToPose(outTraj.getInitialTargetHolonomicPose())
-
-    autoUtils.tryResetOdomWithLimelight(r, 0)
-    yield from RobotAutos.shootStartingRing(r)
-    yield from autoUtils.scoreRing(r, outTraj, returnTraj)
-
-@staticmethod
-def shootFromUpperSpeakerAndScoreTwo(r: 'robot.Robot'):
-    outTraj = autoUtils.loadTrajectory("side-upper", r.onRedSide)
-    returnTraj = autoUtils.loadTrajectory("side-upper-back", r.onRedSide)
-    farOutTraj = autoUtils.loadTrajectory("sideFar-upper-v02", r.onRedSide)
-    farReturnTraj = autoUtils.loadTrajectory("sideFar-upper-back-v02", r.onRedSide)
-    r.resetGyroAndOdomToPose(outTraj.getInitialTargetHolonomicPose())
-
-    autoUtils.tryResetOdomWithLimelight(r, 0)
-    yield from RobotAutos.shootStartingRing(r)
-    yield from autoUtils.scoreRing(r, outTraj, returnTraj)
-    autoUtils.tryResetOdomWithLimelight(r, 0)
-    yield from autoUtils.scoreRing(r, farOutTraj, farReturnTraj)
-
-@staticmethod
-def shootFromLowerSpeakerAndScoreLowerNote(r: 'robot.Robot'):
-    outTraj = autoUtils.loadTrajectory("side-lower", r.onRedSide)
-    returnTraj = autoUtils.loadTrajectory("side-lower-back", r.onRedSide)
-    r.resetGyroAndOdomToPose(outTraj.getInitialTargetHolonomicPose())
-
-    autoUtils.tryResetOdomWithLimelight(r, 0)
-    yield from RobotAutos.shootStartingRing(r)
-    yield from autoUtils.scoreRing(r, outTraj, returnTraj)
-
+def testingAuto(r: 'robot.Robot'):
+    r.resetGyroAndOdomToPose(Pose2d())
+    yield from autoUtils.wait(2)
+    r.resetGyroAndOdomToPose(Pose2d(1, 0, Rotation2d(0)))
+    yield from autoUtils.wait(3)
+    r.resetGyroAndOdomToPose(Pose2d(2, 0, Rotation2d(math.pi/2)))
+    yield from autoUtils.wait(4)
+    r.resetGyroAndOdomToPose(Pose2d(3, 0, Rotation2d(-math.pi/2)))

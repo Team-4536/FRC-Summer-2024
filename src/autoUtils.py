@@ -1,19 +1,14 @@
 import math
-import autos
-import wpilib
-from ntcore import NetworkTableInstance
+from inspect import signature
 
+import autos
 import robot
 import wpilib
 from ntcore import NetworkTableInstance
 from pathplannerlib.path import PathPlannerPath
 from pathplannerlib.trajectory import PathPlannerTrajectory
-from shooterStateMachine import ShooterTarget
 from wpimath.geometry import Pose2d
 from wpimath.kinematics import ChassisSpeeds
-
-from inspect import signature
-import robot
 
 """
 - see autos.py for an in-depth explaination of the entire auto system, as well as should be in this file and autos.py
@@ -41,6 +36,7 @@ class AutoManager():
     # takes what auto has been selected on the dash and creates the generator for it
     # if the key is invalid or none, self.auto = None (which will do nothing when runAuto is called)
     # the reference to the robot, r, is not able to be updated after this call (because of generator wierdness)
+    # The auto should call robot functions to reset pose when needed
     def chooseAuto(self, r: 'robot.Robot'):
         self.generator = None
 
@@ -92,28 +88,11 @@ def runPathUntilDone(r: 'robot.Robot', t: PathPlannerTrajectory):
         runPath(r, t, timer.get())
         yield "running path until finished"
 
-def intakeUntilRingGot(r: 'robot.Robot'):
-    while(r.intakeStateMachine.state != r.intakeStateMachine.STORING):
-        r.intakeStateMachine.update(r.hal, True)
-        yield "waiting on ring intake"
-
 def wait(duration: float):
     t = wpilib.Timer()
     t.start()
     while(t.get() < duration):
         yield f"waiting for {duration}s"
-
-def prepShooter(r: 'robot.Robot', target: ShooterTarget, rev: bool) -> bool:
-    r.shooterStateMachine.feed(True)
-    r.shooterStateMachine.aim(target)
-    r.shooterStateMachine.rev(rev)
-    return r.shooterStateMachine.onTarget
-
-# TODO: make this not frame dependant
-def fireShooterUntilDone(r: 'robot.Robot'):
-    while r.shooterStateMachine.state != r.shooterStateMachine.READY_FOR_RING:
-        r.shooterStateMachine.shoot(True)
-        yield "waiting on shooter to return to ready state"
 
 def tryResetOdomWithLimelight(r: 'robot.Robot', pipeline: int) -> bool:
     limelightTable = r.frontLimelightTable
@@ -135,25 +114,3 @@ def tryResetOdomWithLimelight(r: 'robot.Robot', pipeline: int) -> bool:
         r.drive.resetOdometry(visionPose2D, r.hal)
         return True
     return False
-
-def scoreRing(r: 'robot.Robot', outTraj: PathPlannerTrajectory, returnTraj: PathPlannerTrajectory):
-    t = wpilib.Timer()
-    t.start()
-    while(t.get() < outTraj.getTotalTimeSeconds()):
-        r.intakeStateMachine.update(r.hal, True)
-        runPath(r, outTraj, t.get())
-        yield "waiting on running out path"
-
-    yield from intakeUntilRingGot(r)
-
-    # run back
-    t.restart()
-    while(t.get() < returnTraj.getTotalTimeSeconds()):
-        prepShooter(r, ShooterTarget.SUBWOOFER, True)
-        runPath(r, returnTraj, t.get())
-        yield "waiting for return path"
-
-    while not prepShooter(r, ShooterTarget.SUBWOOFER, True):
-        yield "waiting on shooter prep"
-
-    yield from fireShooterUntilDone(r)
