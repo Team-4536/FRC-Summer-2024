@@ -14,7 +14,7 @@ from wpimath.geometry import Pose2d, Rotation2d, Translation2d
 from wpimath.kinematics import ChassisSpeeds, SwerveModulePosition
 
 
-
+class RobotInputs():
     def __init__(self) -> None:
         self.driveCtrlr = wpilib.XboxController(0)
         self.armCtrlr = wpilib.XboxController(1)
