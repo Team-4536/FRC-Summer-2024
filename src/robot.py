@@ -54,9 +54,6 @@ class Robot(wpilib.TimedRobot):
         self.drive = None
 
         self.driveGyroYawOffset = (
-
-
-
             0.0  # the last angle that drivers reset the field oriented drive to zero at
         )
 
@@ -71,7 +68,9 @@ class Robot(wpilib.TimedRobot):
 
         self.ang = 0
 
-        self.frontLimelightTable = NetworkTableInstance.getDefault().getTable("limelight-front"        )
+        self.frontLimelightTable = NetworkTableInstance.getDefault().getTable(
+            "limelight-front"
+        )
         self.robotPoseTable = NetworkTableInstance.getDefault().getTable("robot pose")
 
     def robotPeriodic(self) -> None:
