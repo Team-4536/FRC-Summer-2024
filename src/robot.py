@@ -49,6 +49,7 @@ class Robot(wpilib.TimedRobot):
 
         self.table = NetworkTableInstance.getDefault().getTable("telemetry")
 
+
         self.input = RobotInputs()
 
         self.drive = None
