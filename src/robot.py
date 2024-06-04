@@ -14,7 +14,7 @@ from wpimath.geometry import Pose2d, Rotation2d, Translation2d
 from wpimath.kinematics import ChassisSpeeds, SwerveModulePosition
 
 
-class RobotInputs():
+class RobotInputs:
     def __init__(self) -> None:
         self.driveCtrlr = wpilib.XboxController(0)
         self.armCtrlr = wpilib.XboxController(1)
@@ -49,13 +49,17 @@ class Robot(wpilib.TimedRobot):
 
         self.table = NetworkTableInstance.getDefault().getTable("telemetry")
 
-
         self.input = RobotInputs()
 
         self.drive = None
 
-        self.driveGyroYawOffset = 0.0 # the last angle that drivers reset the field oriented drive to zero at
-        
+        self.driveGyroYawOffset = (
+
+
+
+            0.0  # the last angle that drivers reset the field oriented drive to zero at
+        )
+
         self.autoSideChooser = wpilib.SendableChooser()
         wpilib.SmartDashboard.putData("auto side chooser", self.autoSideChooser)
 
@@ -67,9 +71,7 @@ class Robot(wpilib.TimedRobot):
 
         self.ang = 0
 
-        self.frontLimelightTable = NetworkTableInstance.getDefault().getTable(
-            "limelight-front"
-        )
+        self.frontLimelightTable = NetworkTableInstance.getDefault().getTable("limelight-front"        )
         self.robotPoseTable = NetworkTableInstance.getDefault().getTable("robot pose")
 
     def robotPeriodic(self) -> None:
@@ -78,7 +80,6 @@ class Robot(wpilib.TimedRobot):
         self.time = TimeData(self.time)
 
         self.hal.publish(self.table)
-
 
         updatePIDsInNT()
 
@@ -92,9 +93,13 @@ class Robot(wpilib.TimedRobot):
         speedControlEdited = lerp(1, 5.0, self.input.speedCtrl)
         turnScalar = 6
 
-        driveVector = Translation2d(self.input.driveX * speedControlEdited, self.input.driveY * speedControlEdited)
-        turnVector = Translation2d(self.input.turningY, self.input.turningX) #for pid only
-
+        driveVector = Translation2d(
+            self.input.driveX * speedControlEdited,
+            self.input.driveY * speedControlEdited,
+        )
+        turnVector = Translation2d(
+            self.input.turningY, self.input.turningX
+        )  # for pid only
 
         self.hardware.update(self.hal, self.time)
 
@@ -102,7 +107,7 @@ class Robot(wpilib.TimedRobot):
         # when simulating, initalize sim to have a preloaded ring
         if isinstance(self.hardware, RobotSimHAL):
 
-            pass        
+            pass
 
     def autonomousPeriodic(self) -> None:
         self.hal.stopMotors()
