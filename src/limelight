@@ -1,0 +1,18 @@
+from ntcore import NetworkTableInstance
+frontLimelightTable = NetworkTableInstance.getDefault().getTable("limelight-front")
+def limelightPieceFollowing(tx:float,ty:float) :
+    speed = 0
+    if (tx == 0.00 and ty == 0.00):
+        pass
+    else:
+        if self.pieceX > -6 and self.pieceX < 6:
+            speed = ChassisSpeeds(0.05, 0, 0)
+        elif (self.pieceX < -6):
+            speed = ChassisSpeeds(0,0, 0.05)
+        elif (self.pieceX > 6):
+            speed = ChassisSpeeds(0,0, -0.05)
+    
+    self.table.putNumber("leashedSpeedX", speed.vx)
+    self.table.putNumber("leashedSpeedY", speed.vy)
+    self.table.putNumber("leashedSpeedTurn", speed.omega)
+    self.drive.update(self.time.dt, self.hal, speed)
