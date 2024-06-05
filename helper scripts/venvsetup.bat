@@ -20,7 +20,7 @@ pipenv install --python 3.12
 
 timeout /t 5
 
-cd c:\repos\FRC-2024
+cd C:\repos\FRC-Summer-2024
 call .\.venv\scripts\activate
 
 py -m pip install robotpy
