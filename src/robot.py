@@ -56,7 +56,6 @@ class Robot(wpilib.TimedRobot):
         self.driveGyroYawOffset = (
             0.0  # the last angle that drivers reset the field oriented drive to zero at
         )
-
         self.autoSideChooser = wpilib.SendableChooser()
         wpilib.SmartDashboard.putData("auto side chooser", self.autoSideChooser)
 
