@@ -13,10 +13,12 @@ from timing import TimeData
 
 class RobotHALBuffer:
     def __init__(self) -> None:
-        pass
-
-    def resetEncoders(self) -> None:
-        pass
+        self.leftDriveVolts: list[float] = [0, 0]
+        self.rightDriveVolts: list[float] = [0, 0]
+        self.leftDrivePositions: list[float] = [0, 0]
+        self.rightDrivePositions: list[float] = [0, 0]
+        self.leftDriveSpeedMeasured: list[float] = [0, 0]
+        self.rightDriveSpeedMeasured: list[float] = [0, 0]
 
     def stopMotors(self) -> None:
         pass
@@ -26,6 +28,9 @@ class RobotHALBuffer:
 
 
 class RobotHAL:
+    DRIVE_GEARING: float = 1
+    WHEEL_RADIUS: float = 1
+
     def __init__(self) -> None:
         self.prev: RobotHALBuffer = RobotHALBuffer()
 
@@ -86,3 +91,33 @@ class RobotHAL:
     def update(self, buf: RobotHALBuffer, time: TimeData) -> None:
         prev = self.prev
         self.prev = copy.deepcopy(buf)
+
+        for m, s in zip(self.leftDriveMotors, buf.leftDriveVolts):
+            m.set(s)
+
+        for m, s in zip(self.rightDriveMotors, buf.rightDriveVolts):
+            m.set(s)
+
+        for i in range(2):
+            e = self.leftDriveEncoders[i]
+            buf.leftDrivePositions[i] = (
+                math.radians((e.getPosition() / self.DRIVE_GEARING) * 360)
+                * self.WHEEL_RADIUS
+            )
+            buf.leftDriveSpeedMeasured[i] = (
+                math.radians((e.getVelocity() / self.DRIVE_GEARING) * 360)
+                * self.WHEEL_RADIUS
+                / 60
+            )
+
+        for i in range(2):
+            e = self.rightDriveEncoders[i]
+            buf.rightDrivePositions[i] = (
+                math.radians((e.getPosition() / self.DRIVE_GEARING) * 360)
+                * self.WHEEL_RADIUS
+            )
+            buf.rightDriveSpeedMeasured[i] = (
+                math.radians((e.getVelocity() / self.DRIVE_GEARING) * 360)
+                * self.WHEEL_RADIUS
+                / 60
+            )
