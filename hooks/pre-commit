@@ -12,7 +12,7 @@ fi
 
 if ! C:/repos/FRC-Summer-2024/.venv/Scripts/python.exe -m black src --check --quiet
 then
-    echo "Must format code correctly"
+    echo "Must format code correctly; run 'py -m black src'"
     exit 1
 else
     exit 0

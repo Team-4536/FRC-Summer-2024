@@ -29,5 +29,6 @@ rem go to src to sync
 cd .\src
 rem GOTO src & RUN THIS AT THE END:
 robotpy sync
-cd..
-.\.venv\scripts\activate
+
+cd ..
+call & "helper scripts\setupGitHooks.bat"
