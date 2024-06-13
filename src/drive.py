@@ -2,15 +2,12 @@ from PIDController import PIDController
 from robotHAL import RobotHALBuffer
 from wpimath.kinematics import ChassisSpeeds, DifferentialDriveKinematics
 
-
 class Drive:
     def __init__(self):
         self.drivePIDs = [
-            PIDController(
-                "LeftDrive", 0, 0, 0, 0
-            ),  # idk what these values should be  ¯\(ツ)/¯
+            PIDController("LeftDrive", 0, 0, 0, 0),
             PIDController("RightDrive", 0, 0, 0, 0),
-        ]
+        ]  # idk what these values should be  ¯\(ツ)/¯
         self.tankDriveKinematics = DifferentialDriveKinematics(
             trackWidth=1
         )  # temp track width value
