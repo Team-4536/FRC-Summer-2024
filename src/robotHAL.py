@@ -20,8 +20,36 @@ class RobotHALBuffer:
         self.leftDriveSpeedMeasured: list[float] = [0, 0]
         self.rightDriveSpeedMeasured: list[float] = [0, 0]
 
+        self.intakePivotVolts: float = 0
+        self.intakePivotPosition: float = 0
+
+        self.intakeFeedVolts: float = 0
+        self.intakeFeedPosition: float = 0
+
+        self.shooterFeedVolts: float = 0
+        self.shooterFeedPosition: float = 0
+
+        self.shooterAimVolts: float = 0
+        self.shooterAimPosition: float = 0
+
+        self.shooterTopMotorVolts: float = 0
+        self.shooterTopMotorPosition: float = 0
+
+        self.shooterBottomMotorVolts: float = 0
+        self.shooterBottomMotorPosition: float = 0
+
+        self.yaw: float = 0
+
     def stopMotors(self) -> None:
-        pass
+        self.leftDriveVolts = [0, 0]
+        self.rightDriveVolts = [0, 0]
+
+        self.intakePivotVolts = 0
+        self.intakeFeedVolts = 0
+        self.shooterFeedVolts = 0
+        self.shooterAimVolts = 0
+        self.shooterTopMotorVolts = 0
+        self.shooterBottomMotorVolts = 0
 
     def publish(self, table: ntcore.NetworkTable) -> None:
         pass
@@ -88,6 +116,13 @@ class RobotHAL:
             self.shooterBottomMotor.getEncoder()
         )
 
+        self.gyro: navx.AHRS = navx.AHRS(wpilib.SerialPort.Port.kUSB1)
+
+    # angle expected in CCW radians
+    def resetGyroToAngle(self, angleRads: float) -> None:
+        self.gyro.reset()
+        self.gyro.setAngleAdjustment(-math.degrees(angleRads))
+
     def update(self, buf: RobotHALBuffer, time: TimeData) -> None:
         prev = self.prev
         self.prev = copy.deepcopy(buf)
@@ -121,3 +156,22 @@ class RobotHAL:
                 * self.WHEEL_RADIUS
                 / 60
             )
+
+        self.intakePivot.setVoltage(buf.intakePivotVolts)
+        buf.intakePivotPosition = self.intakePivotEncoder.getPosition()
+
+        self.intakeFeed.setVoltage(buf.intakeFeedVolts)
+        buf.intakeFeedPosition = self.intakeFeedEncoder.getPosition()
+
+        self.shooterFeed.setVoltage(buf.shooterFeedVolts)
+        buf.shooterFeedPosition = self.shooterFeedEncoder.getPosition()
+
+        self.shooterAim.setVoltage(buf.shooterAimVolts)
+        buf.shooterAimPosition = self.shooterAimEncoder.getPosition()
+
+        self.shooterTopMotor.setVoltage(buf.shooterTopMotorVolts)
+        self.shooterBottomMotor.setVoltage(buf.shooterBottomMotorVolts)
+        buf.shooterTopMotorPosition = self.shooterTopMotorEncoder.getPosition()
+        buf.shooterBottomMotorPosition = self.shooterBottomMotorEncoder.getPosition()
+
+        buf.yaw = self.gyro.getAngle()
