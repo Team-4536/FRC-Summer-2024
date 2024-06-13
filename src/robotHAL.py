@@ -1,5 +1,6 @@
 import copy
 import math
+from re import T
 
 import navx
 import ntcore
@@ -41,8 +42,8 @@ class RobotHALBuffer:
         self.yaw: float = 0
 
     def stopMotors(self) -> None:
-        self.leftDriveVolts = [0, 0]
-        self.rightDriveVolts = [0, 0]
+        self.leftDriveVolts: list[float] = [0, 0, 0]
+        self.rightDriveVolts: list[float] = [0, 0, 0]
 
         self.intakePivotVolts = 0
         self.intakeFeedVolts = 0
