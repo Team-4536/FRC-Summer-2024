@@ -14,12 +14,12 @@ from timing import TimeData
 
 class RobotHALBuffer:
     def __init__(self) -> None:
-        self.leftDriveVolts: list[float] = [0, 0]
-        self.rightDriveVolts: list[float] = [0, 0]
-        self.leftDrivePositions: list[float] = [0, 0]
-        self.rightDrivePositions: list[float] = [0, 0]
-        self.leftDriveSpeedMeasured: list[float] = [0, 0]
-        self.rightDriveSpeedMeasured: list[float] = [0, 0]
+        self.leftDriveVolts: list[float] = [0, 0, 0]
+        self.rightDriveVolts: list[float] = [0, 0, 0]
+        self.leftDrivePositions: list[float] = [0, 0, 0]
+        self.rightDrivePositions: list[float] = [0, 0, 0]
+        self.leftDriveSpeedMeasured: list[float] = [0, 0, 0]
+        self.rightDriveSpeedMeasured: list[float] = [0, 0, 0]
 
         self.intakePivotVolts: float = 0
         self.intakePivotAngle: float = 0
@@ -61,12 +61,12 @@ class RobotHAL:
     DRIVE_GEARING: float = 1
     WHEEL_RADIUS: float = 1
 
-    INTAKE_PIVOT_GEARING: int = 1
-    INTAKE_FEED_GEARING: int = 1
-    SHOOTER_FEED_GEARING: int = 1
-    SHOOTER_AIM_GEARING: int = 1
-    SHOOTER_TOP_MOTOR_GEARING: int = 1
-    SHOOTER_BOTTOM_MOTOR_GEARING: int = 1
+    INTAKE_PIVOT_GEARING: float = 1
+    INTAKE_FEED_GEARING: float = 1
+    SHOOTER_FEED_GEARING: float = 1
+    SHOOTER_AIM_GEARING: float = 1
+    SHOOTER_TOP_MOTOR_GEARING: float = 1
+    SHOOTER_BOTTOM_MOTOR_GEARING: float = 1
 
     def __init__(self) -> None:
         self.prev: RobotHALBuffer = RobotHALBuffer()
@@ -151,7 +151,7 @@ class RobotHAL:
         for m, s in zip(self.rightDriveMotors, buf.rightDriveVolts):
             m.set(s)
 
-        for i in range(2):
+        for i in range(3):
             e = self.leftDriveEncoders[i]
             buf.leftDrivePositions[i] = (
                 math.radians((e.getPosition() / self.DRIVE_GEARING) * 360)
@@ -163,7 +163,7 @@ class RobotHAL:
                 / 60
             )
 
-        for i in range(2):
+        for i in range(3):
             e = self.rightDriveEncoders[i]
             buf.rightDrivePositions[i] = (
                 math.radians((e.getPosition() / self.DRIVE_GEARING) * 360)
@@ -180,7 +180,7 @@ class RobotHAL:
             self.intakePivotEncoder.getPosition()
             * math.pi
             * 2
-            / self.INTAKE_PIVOT_GEARING
+            * self.INTAKE_PIVOT_GEARING
         )
 
         self.intakeFeed.setVoltage(buf.intakeFeedVolts)
@@ -188,7 +188,7 @@ class RobotHAL:
             self.intakeFeedEncoder.getPosition()
             * math.pi
             * 2
-            / self.INTAKE_FEED_GEARING
+            * self.INTAKE_FEED_GEARING
         )
 
         self.shooterFeed.setVoltage(buf.shooterFeedVolts)
@@ -196,7 +196,7 @@ class RobotHAL:
             self.shooterFeedEncoder.getPosition()
             * math.pi
             * 2
-            / self.SHOOTER_FEED_GEARING
+            * self.SHOOTER_FEED_GEARING
         )
 
         self.shooterAim.setVoltage(buf.shooterAimVolts)
@@ -204,7 +204,7 @@ class RobotHAL:
             self.shooterAimEncoder.getPosition()
             * math.pi
             * 2
-            / self.SHOOTER_AIM_GEARING
+            * self.SHOOTER_AIM_GEARING
         )
 
         self.shooterTopMotor.setVoltage(buf.shooterTopMotorVolts)
@@ -213,13 +213,13 @@ class RobotHAL:
             self.shooterTopMotorEncoder.getPosition()
             * math.pi
             * 2
-            / self.SHOOTER_TOP_MOTOR_GEARING
+            * self.SHOOTER_TOP_MOTOR_GEARING
         )
         buf.shooterBottomMotorAngle = (
             self.shooterBottomMotorEncoder.getPosition()
             * math.pi
             * 2
-            / self.SHOOTER_BOTTOM_MOTOR_GEARING
+            * self.SHOOTER_BOTTOM_MOTOR_GEARING
         )
 
         buf.yaw = math.radians(-self.gyro.getAngle())
