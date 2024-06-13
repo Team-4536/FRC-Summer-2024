@@ -21,22 +21,22 @@ class RobotHALBuffer:
         self.rightDriveSpeedMeasured: list[float] = [0, 0]
 
         self.intakePivotVolts: float = 0
-        self.intakePivotPosition: float = 0
+        self.intakePivotAngle: float = 0
 
         self.intakeFeedVolts: float = 0
-        self.intakeFeedPosition: float = 0
+        self.intakeFeedAngle: float = 0
 
         self.shooterFeedVolts: float = 0
-        self.shooterFeedPosition: float = 0
+        self.shooterFeedAngle: float = 0
 
         self.shooterAimVolts: float = 0
-        self.shooterAimPosition: float = 0
+        self.shooterAimAngle: float = 0
 
         self.shooterTopMotorVolts: float = 0
-        self.shooterTopMotorPosition: float = 0
+        self.shooterTopMotorAngle: float = 0
 
         self.shooterBottomMotorVolts: float = 0
-        self.shooterBottomMotorPosition: float = 0
+        self.shooterBottomMotorAngle: float = 0
 
         self.yaw: float = 0
 
@@ -56,8 +56,16 @@ class RobotHALBuffer:
 
 
 class RobotHAL:
+    # constant values that are determined at compile time, not run time, put that stuff in __init__
     DRIVE_GEARING: float = 1
     WHEEL_RADIUS: float = 1
+
+    INTAKE_PIVOT_GEARING: int = 1
+    INTAKE_FEED_GEARING: int = 1
+    SHOOTER_FEED_GEARING: int = 1
+    SHOOTER_AIM_GEARING: int = 1
+    SHOOTER_TOP_MOTOR_GEARING: int = 1
+    SHOOTER_BOTTOM_MOTOR_GEARING: int = 1
 
     def __init__(self) -> None:
         self.prev: RobotHALBuffer = RobotHALBuffer()
@@ -74,9 +82,11 @@ class RobotHAL:
         self.leftDriveEncoders: list[rev.SparkRelativeEncoder] = [
             x.getEncoder() for x in self.leftDriveMotors
         ]
+        [x.setPosition(0) for x in self.leftDriveEncoders]
         self.rightDriveEncoders: list[rev.SparkRelativeEncoder] = [
             x.getEncoder() for x in self.rightDriveMotors
         ]
+        [x.setPosition(0) for x in self.rightDriveEncoders]
 
         self.intakePivot: rev.CANSparkMax = rev.CANSparkMax(
             4, rev.CANSparkMax.MotorType.kBrushless
@@ -84,11 +94,13 @@ class RobotHAL:
         self.intakePivotEncoder: rev.SparkRelativeEncoder = (
             self.intakePivot.getEncoder()
         )
+        self.intakePivotEncoder.setPosition(0)
 
         self.intakeFeed: rev.CANSparkMax = rev.CANSparkMax(
             5, rev.CANSparkMax.MotorType.kBrushless
         )
         self.intakeFeedEncoder: rev.SparkRelativeEncoder = self.intakeFeed.getEncoder()
+        self.intakeFeedEncoder.setPosition(0)
 
         self.shooterFeed: rev.CANSparkMax = rev.CANSparkMax(
             6, rev.CANSparkMax.MotorType.kBrushless
@@ -96,11 +108,13 @@ class RobotHAL:
         self.shooterFeedEncoder: rev.SparkRelativeEncoder = (
             self.shooterFeed.getEncoder()
         )
+        self.shooterFeedEncoder.setPosition(0)
 
         self.shooterAim: rev.CANSparkMax = rev.CANSparkMax(
             7, rev.CANSparkMax.MotorType.kBrushless
         )
         self.shooterAimEncoder: rev.SparkRelativeEncoder = self.shooterAim.getEncoder()
+        self.shooterAimEncoder.setPosition(0)
 
         self.shooterTopMotor: rev.CANSparkMax = rev.CANSparkMax(
             8, rev.CANSparkMax.MotorType.kBrushless
@@ -108,6 +122,7 @@ class RobotHAL:
         self.shooterTopMotorEncoder: rev.SparkRelativeEncoder = (
             self.shooterTopMotor.getEncoder()
         )
+        self.shooterTopMotorEncoder.setPosition(0)
 
         self.shooterBottomMotor: rev.CANSparkMax = rev.CANSparkMax(
             9, rev.CANSparkMax.MotorType.kBrushless
@@ -115,6 +130,7 @@ class RobotHAL:
         self.shooterBottomMotorEncoder: rev.SparkRelativeEncoder = (
             self.shooterBottomMotor.getEncoder()
         )
+        self.shooterBottomMotorEncoder.setPosition(0)
 
         self.gyro: navx.AHRS = navx.AHRS(wpilib.SerialPort.Port.kUSB1)
 
@@ -158,20 +174,50 @@ class RobotHAL:
             )
 
         self.intakePivot.setVoltage(buf.intakePivotVolts)
-        buf.intakePivotPosition = self.intakePivotEncoder.getPosition()
+        buf.intakePivotAngle = (
+            self.intakePivotEncoder.getPosition()
+            * math.pi
+            * 2
+            / self.INTAKE_PIVOT_GEARING
+        )
 
         self.intakeFeed.setVoltage(buf.intakeFeedVolts)
-        buf.intakeFeedPosition = self.intakeFeedEncoder.getPosition()
+        buf.intakeFeedAngle = (
+            self.intakeFeedEncoder.getPosition()
+            * math.pi
+            * 2
+            / self.INTAKE_FEED_GEARING
+        )
 
         self.shooterFeed.setVoltage(buf.shooterFeedVolts)
-        buf.shooterFeedPosition = self.shooterFeedEncoder.getPosition()
+        buf.shooterFeedAngle = (
+            self.shooterFeedEncoder.getPosition()
+            * math.pi
+            * 2
+            / self.SHOOTER_FEED_GEARING
+        )
 
         self.shooterAim.setVoltage(buf.shooterAimVolts)
-        buf.shooterAimPosition = self.shooterAimEncoder.getPosition()
+        buf.shooterAimAngle = (
+            self.shooterAimEncoder.getPosition()
+            * math.pi
+            * 2
+            / self.SHOOTER_AIM_GEARING
+        )
 
         self.shooterTopMotor.setVoltage(buf.shooterTopMotorVolts)
         self.shooterBottomMotor.setVoltage(buf.shooterBottomMotorVolts)
-        buf.shooterTopMotorPosition = self.shooterTopMotorEncoder.getPosition()
-        buf.shooterBottomMotorPosition = self.shooterBottomMotorEncoder.getPosition()
+        buf.shooterTopMotorAngle = (
+            self.shooterTopMotorEncoder.getPosition()
+            * math.pi
+            * 2
+            / self.SHOOTER_TOP_MOTOR_GEARING
+        )
+        buf.shooterBottomMotorAngle = (
+            self.shooterBottomMotorEncoder.getPosition()
+            * math.pi
+            * 2
+            / self.SHOOTER_BOTTOM_MOTOR_GEARING
+        )
 
-        buf.yaw = self.gyro.getAngle()
+        buf.yaw = math.radians(-self.gyro.getAngle())
