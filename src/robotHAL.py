@@ -14,12 +14,12 @@ from timing import TimeData
 
 class RobotHALBuffer:
     def __init__(self) -> None:
-        self.leftDriveVolts: list[float] = [0, 0, 0]
-        self.rightDriveVolts: list[float] = [0, 0, 0]
-        self.leftDrivePositions: list[float] = [0, 0, 0]
-        self.rightDrivePositions: list[float] = [0, 0, 0]
-        self.leftDriveSpeedMeasured: list[float] = [0, 0, 0]
-        self.rightDriveSpeedMeasured: list[float] = [0, 0, 0]
+        self.leftDriveVolts: float = 0
+        self.rightDriveVolts: float = 0
+        self.leftDrivePosition: float = 0
+        self.rightDrivePosition: float = 0
+        self.leftDriveSpeedMeasured: float = 0
+        self.rightDriveSpeedMeasured: float = 0
 
         self.intakePivotVolts: float = 0
         self.intakePivotAngle: float = 0
@@ -42,8 +42,8 @@ class RobotHALBuffer:
         self.yaw: float = 0
 
     def stopMotors(self) -> None:
-        self.leftDriveVolts: list[float] = [0, 0, 0]
-        self.rightDriveVolts: list[float] = [0, 0, 0]
+        self.leftDriveVolts = 0
+        self.rightDriveVolts = 0
 
         self.intakePivotVolts = 0
         self.intakeFeedVolts = 0
@@ -53,7 +53,11 @@ class RobotHALBuffer:
         self.shooterBottomMotorVolts = 0
 
     def publish(self, table: ntcore.NetworkTable) -> None:
-        pass
+        table.putNumber("leftDriveVolts", self.leftDriveSpeedMeasured)
+        table.putNumber("rightDriveVolts", self.rightDriveSpeedMeasured)
+
+        table.putNumber("leftDriveSpeed", self.leftDriveSpeedMeasured)
+        table.putNumber("rightDriveSpeed", self.rightDriveSpeedMeasured)
 
 
 class RobotHAL:
@@ -145,35 +149,32 @@ class RobotHAL:
 
         self.prev = copy.deepcopy(buf)
 
+        # needs redoing (I'll get to this next dont worry i totally wont forget :D )
         for m, s in zip(self.leftDriveMotors, buf.leftDriveVolts):
             m.set(s)
 
         for m, s in zip(self.rightDriveMotors, buf.rightDriveVolts):
             m.set(s)
 
-        for i in range(3):
-            e = self.leftDriveEncoders[i]
-            buf.leftDrivePositions[i] = (
-                math.radians((e.getPosition() / self.DRIVE_GEARING) * 360)
-                * self.WHEEL_RADIUS
-            )
-            buf.leftDriveSpeedMeasured[i] = (
-                math.radians((e.getVelocity() / self.DRIVE_GEARING) * 360)
-                * self.WHEEL_RADIUS
-                / 60
-            )
+        buf.leftDrivePosition = (
+            math.radians((self.leftDriveEncoders.getPosition() / self.DRIVE_GEARING) * 360)
+            * self.WHEEL_RADIUS
+        )
+        buf.leftDriveSpeedMeasured = (
+            math.radians((self.leftDriveEncoders.getVelocity() / self.DRIVE_GEARING) * 360)
+            * self.WHEEL_RADIUS
+            / 60
+        )
 
-        for i in range(3):
-            e = self.rightDriveEncoders[i]
-            buf.rightDrivePositions[i] = (
-                math.radians((e.getPosition() / self.DRIVE_GEARING) * 360)
-                * self.WHEEL_RADIUS
-            )
-            buf.rightDriveSpeedMeasured[i] = (
-                math.radians((e.getVelocity() / self.DRIVE_GEARING) * 360)
-                * self.WHEEL_RADIUS
-                / 60
-            )
+        buf.rightDrivePosition = (
+            math.radians((self.rightDriveEncoders.getPosition() / self.DRIVE_GEARING) * 360)
+            * self.WHEEL_RADIUS
+        )
+        buf.rightDriveSpeedMeasured = (
+            math.radians((self.rightDriveEncoders.getVelocity() / self.DRIVE_GEARING) * 360)
+            * self.WHEEL_RADIUS
+            / 60
+        )
 
         self.intakePivot.setVoltage(buf.intakePivotVolts)
         buf.intakePivotAngle = (

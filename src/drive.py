@@ -1,13 +1,14 @@
+from turtle import right
+from ntcore import NetworkTableInstance
 from PIDController import PIDController
 from robotHAL import RobotHALBuffer
-from wpimath.kinematics import ChassisSpeeds, DifferentialDriveKinematics
+from wpimath.kinematics import DifferentialDriveKinematics
 
 class Drive:
     def __init__(self):
-        self.drivePIDs = [
-            PIDController("LeftDrive", 0, 0, 0, 0),
-            PIDController("RightDrive", 0, 0, 0, 0),
-        ]  # idk what these values should be  ¯\(ツ)/¯
+        self.leftDrivePID = PIDController("LeftDrive", 0, 0, 0, 0)
+        self.rightDrivePID = PIDController("RightDrive", 0, 0, 0, 0)
+
         self.tankDriveKinematics = DifferentialDriveKinematics(
             trackWidth=1
         )  # temp track width value
@@ -15,20 +16,9 @@ class Drive:
     def resetOdom(self):
         pass
 
-    def update(self, dt: float, hal: RobotHALBuffer, speed: ChassisSpeeds):
-        self.wheelSpeeds = self.tankDriveKinematics.toWheelSpeeds(speed)
-
-        leftDriveVoltage = [
-            self.drivePIDs[0].tick(self.wheelSpeeds.left, x, dt)
-            for x in hal.leftDriveSpeedMeasured
-        ]
-        rightDriveVoltage = [
-            self.drivePIDs[0].tick(self.wheelSpeeds.left, x, dt)
-            for x in hal.rightDriveSpeedMeasured
-        ]
-
-        hal.leftDriveVolts = leftDriveVoltage
-        hal.rightDriveVolts = rightDriveVoltage
+    def update(self, dt: float, hal: RobotHALBuffer, leftSpeed: float, rightSpeed: float):
+        hal.leftDriveVolt = self.leftDrivePID.tick(leftSpeed, hal.leftDriveSpeedMeasured, dt)
+        hal.rightDriveVolt = self.rightDrivePID.tick(rightSpeed, hal.rightDriveSpeedMeasured, dt)
 
     def updateOdom(self, hal):
         pass
