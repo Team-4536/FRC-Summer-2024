@@ -12,6 +12,7 @@ from timing import TimeData
 from utils import CircularScalar, Scalar
 from wpimath.geometry import Pose2d, Rotation2d, Translation2d
 from wpimath.kinematics import ChassisSpeeds, SwerveModulePosition
+from dodgeballStateMachine import DodgeballStateMachine, ShooterTarget, StateEnum
 
 
 class RobotInputs:
@@ -32,8 +33,22 @@ class RobotInputs:
         self.gyroReset: bool = False
         self.absToggle: bool = False
 
+        self.intake: bool = False
+        self.aiming: ShooterTarget = ShooterTarget.NONE
+        self.rev: bool = False
+        self.shoot: bool = False
+
     def update(self) -> None:
-        pass
+        self.intake = self.armCtrlr.getAButton()
+        self.aiming = ShooterTarget.NONE
+        if self.armCtrlr.getPOV() == 0:
+            self.aiming = ShooterTarget.LOW
+        if self.armCtrlr.getPOV() == 90:
+            self.aiming = ShooterTarget.MEDIUM
+        if self.armCtrlr.getPOV() == 180:
+            self.aiming = ShooterTarget.HIGH
+        self.rev = self.armCtrlr.getBButton()
+        self.shoot = self.armCtrlr.getYButton()
 
 
 class Robot(wpilib.TimedRobot):
@@ -73,6 +88,8 @@ class Robot(wpilib.TimedRobot):
         )
         self.robotPoseTable = NetworkTableInstance.getDefault().getTable("robot pose")
 
+        self.dodgeballStateMachine: DodgeballStateMachine = DodgeballStateMachine()
+
     def robotPeriodic(self) -> None:
         profiler.start()
 
@@ -83,7 +100,7 @@ class Robot(wpilib.TimedRobot):
         updatePIDsInNT()
 
     def teleopInit(self) -> None:
-        pass
+        self.dodgeballStateMachine.state = StateEnum.IDLE
 
     def teleopPeriodic(self) -> None:
         self.input.update()
@@ -99,6 +116,15 @@ class Robot(wpilib.TimedRobot):
         turnVector = Translation2d(
             self.input.turningY, self.input.turningX
         )  # for pid only
+
+        self.dodgeballStateMachine.intake(self.input.intake)
+        self.dodgeballStateMachine.aiming(self.input.aiming)
+        self.dodgeballStateMachine.rev(self.input.rev)
+        self.dodgeballStateMachine.shoot(self.input.shoot)
+        self.dodgeballStateMachine.update(
+            self.hal, self.time.timeSinceInit, self.time.dt
+        )
+        self.dodgeballStateMachine.publish()
 
         self.hardware.update(self.hal, self.time)
 

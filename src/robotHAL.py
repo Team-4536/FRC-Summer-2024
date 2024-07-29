@@ -40,6 +40,8 @@ class RobotHALBuffer:
 
         self.yaw: float = 0
 
+        self.intakeSensor: bool = False
+
     def stopMotors(self) -> None:
         self.leftDriveVolts = [0, 0]
         self.rightDriveVolts = [0, 0]
@@ -134,6 +136,8 @@ class RobotHAL:
 
         self.gyro: navx.AHRS = navx.AHRS(wpilib.SerialPort.Port.kUSB1)
 
+        self.intakeSensor = wpilib.DigitalInput(0)  # REdefine when wired
+
     # angle expected in CCW radians
     def resetGyroToAngle(self, angleRads: float) -> None:
         self.gyro.reset()
@@ -221,3 +225,5 @@ class RobotHAL:
         )
 
         buf.yaw = math.radians(-self.gyro.getAngle())
+
+        buf.intakeSensor = self.intakeSensor.get()
