@@ -54,7 +54,7 @@ class RobotHALBuffer:
         self.shooterBottomMotorVolts = 0
 
     def publish(self, table: ntcore.NetworkTable) -> None:
-        pass
+        table.putBoolean("intakeSensor", self.intakeSensor)
 
 
 class RobotHAL:

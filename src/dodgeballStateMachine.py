@@ -8,7 +8,7 @@ from robotHAL import RobotHALBuffer
 class StateEnum(Enum):
     IDLE = 1
     INTAKEING = 2
-    AIMING = 3
+    LOADED = 3
     SHOOTING = 4
 
 
@@ -83,11 +83,11 @@ class DodgeballStateMachine:
             hal.shooterBottomMotorVolts = 0
 
             if hal.intakeSensor:
-                self.state = StateEnum.AIMING
+                self.state = StateEnum.LOADED
             elif not self.inputIntake:
                 self.state = StateEnum.IDLE
 
-        elif self.state == StateEnum.AIMING:
+        elif self.state == StateEnum.LOADED:
             hal.intakeFeedVolts = 0
             hal.intakePivotVolts = 0
             hal.shooterFeedVolts = 0
@@ -98,19 +98,6 @@ class DodgeballStateMachine:
                 )
                 hal.shooterBottomMotorVolts = self.bottomShooterPID.tick(
                     self.REV_TARGET, hal.shooterBottomMotorAngle, dt
-                )
-
-            if self.inputAim == ShooterTarget.LOW:
-                hal.shooterAimVolts = self.aimPID.tick(
-                    self.LOW_SETPOINT, hal.shooterAimAngle, dt
-                )
-            elif self.inputAim == ShooterTarget.MEDIUM:
-                hal.shooterAimVolts = self.aimPID.tick(
-                    self.MEDIUM_SETPOINT, hal.shooterAimAngle, dt
-                )
-            elif self.inputAim == ShooterTarget.HIGH:
-                hal.shooterAimVolts = self.aimPID.tick(
-                    self.HIGH_SETPOINT, hal.shooterAimAngle, dt
                 )
 
             if self.inputShoot:
@@ -131,6 +118,19 @@ class DodgeballStateMachine:
 
             if (time - self.time) > 1:
                 self.state = StateEnum.IDLE
+
+        if self.inputAim == ShooterTarget.LOW:
+            hal.shooterAimVolts = self.aimPID.tick(
+                self.LOW_SETPOINT, hal.shooterAimAngle, dt
+            )
+        elif self.inputAim == ShooterTarget.MEDIUM:
+            hal.shooterAimVolts = self.aimPID.tick(
+                self.MEDIUM_SETPOINT, hal.shooterAimAngle, dt
+            )
+        elif self.inputAim == ShooterTarget.HIGH:
+            hal.shooterAimVolts = self.aimPID.tick(
+                self.HIGH_SETPOINT, hal.shooterAimAngle, dt
+            )
 
         self.inputIntake = False
         self.inputAim = ShooterTarget.NONE
