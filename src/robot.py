@@ -5,7 +5,12 @@ import robotHAL
 import wpilib
 from ntcore import NetworkTableInstance
 from pathplannerlib.controller import PIDConstants, PPHolonomicDriveController
-from PIDController import PIDController, PIDControllerForArm, updatePIDsInNT
+from PIDController import (
+    ArmFeedForward,
+    PIDController,
+    updateArmFeedForwardInNT,
+    updatePIDsInNT,
+)
 from real import angleWrap, lerp
 from simHAL import RobotSimHAL
 from timing import TimeData
@@ -81,6 +86,7 @@ class Robot(wpilib.TimedRobot):
         self.hal.publish(self.table)
 
         updatePIDsInNT()
+        updateArmFeedForwardInNT()
 
     def teleopInit(self) -> None:
         pass
