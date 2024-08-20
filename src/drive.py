@@ -17,8 +17,8 @@ class Drive:
         pass
 
     def update(self, dt: float, hal: RobotHALBuffer, leftSpeed: float, rightSpeed: float):
-        hal.leftDriveVolt = self.leftDrivePID.tick(leftSpeed, hal.leftDriveSpeedMeasured, dt)
-        hal.rightDriveVolt = self.rightDrivePID.tick(rightSpeed, hal.rightDriveSpeedMeasured, dt)
+        hal.leftDriveVolts = self.leftDrivePID.tick(leftSpeed, hal.leftDriveSpeedMeasured, dt)
+        hal.rightDriveVolts = self.rightDrivePID.tick(rightSpeed, hal.rightDriveSpeedMeasured, dt)
 
     def updateOdom(self, hal):
         pass
