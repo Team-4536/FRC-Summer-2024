@@ -13,12 +13,12 @@ from timing import TimeData
 
 class RobotHALBuffer:
     def __init__(self) -> None:
-        self.leftDriveVolts: list[float] = [0, 0]
-        self.rightDriveVolts: list[float] = [0, 0]
-        self.leftDrivePositions: list[float] = [0, 0]
-        self.rightDrivePositions: list[float] = [0, 0]
-        self.leftDriveSpeedMeasured: list[float] = [0, 0]
-        self.rightDriveSpeedMeasured: list[float] = [0, 0]
+        self.leftDrivePercent: float = 0
+        self.rightDrivePercent: float = 0
+        self.leftDrivePositions: float = 0
+        self.rightDrivePositions: float = 0
+        self.leftDriveSpeedMeasured: float = 0
+        self.rightDriveSpeedMeasured: float = 0
 
         self.intakePivotVolts: float = 0
         self.intakePivotAngle: float = 0
@@ -41,8 +41,8 @@ class RobotHALBuffer:
         self.yaw: float = 0
 
     def stopMotors(self) -> None:
-        self.leftDriveVolts = [0, 0]
-        self.rightDriveVolts = [0, 0]
+        self.leftDrivePercent = 0
+        self.rightDrivePercent = 0
 
         self.intakePivotVolts = 0
         self.intakeFeedVolts = 0
@@ -70,24 +70,18 @@ class RobotHAL:
     def __init__(self) -> None:
         self.prev: RobotHALBuffer = RobotHALBuffer()
 
-        self.leftDriveMotors: list[rev.CANSparkMax] = [
-            rev.CANSparkMax(0, rev.CANSparkMax.MotorType.kBrushless),
-            rev.CANSparkMax(1, rev.CANSparkMax.MotorType.kBrushless),
-        ]
-        self.rightDriveMotors: list[rev.CANSparkMax] = [
-            rev.CANSparkMax(2, rev.CANSparkMax.MotorType.kBrushless),
-            rev.CANSparkMax(3, rev.CANSparkMax.MotorType.kBrushless),
-        ]
+        # create motors
+         # the motor controllers are on follower mode, so 2 will follow 1, and 4 will follow 3
+        self.leftDriveMotor: rev.CANSparkMax = rev.CANSparkMax(1, rev.CANSparkMax.MotorType.kBrushless)
+        self.rightDriveMotor: rev.CANSparkMax = rev.CANSparkMax(3, rev.CANSparkMax.MotorType.kBrushless)
 
-        self.leftDriveEncoders: list[rev.SparkRelativeEncoder] = [
-            x.getEncoder() for x in self.leftDriveMotors
-        ]
-        [x.setPosition(0) for x in self.leftDriveEncoders]
-        self.rightDriveEncoders: list[rev.SparkRelativeEncoder] = [
-            x.getEncoder() for x in self.rightDriveMotors
-        ]
-        [x.setPosition(0) for x in self.rightDriveEncoders]
+        # create drive encoders and reset positions
+        self.leftDriveEncoder: rev.SparkRelativeEncoder = self.leftDriveMotor.getEncoder()
+        self.rightDriveEncoder: rev.SparkRelativeEncoder = self.rightDriveMotor.getEncoder()
+        self.leftDriveEncoder.setPosition(0)
+        self.rightDriveEncoder.setPosition(0)
 
+        # mechanism stuff
         self.intakePivot: rev.CANSparkMax = rev.CANSparkMax(
             4, rev.CANSparkMax.MotorType.kBrushless
         )
@@ -143,36 +137,18 @@ class RobotHAL:
         prev = self.prev
         self.prev = copy.deepcopy(buf)
 
-        for m, s in zip(self.leftDriveMotors, buf.leftDriveVolts):
-            m.set(s)
+        self.leftDriveMotor.set(buf.leftDrivePercent)
+        self.rightDriveMotor.set(buf.rightDrivePercent)
 
-        for m, s in zip(self.rightDriveMotors, buf.rightDriveVolts):
-            m.set(s)
+        # left drive encoder
+        buf.leftDrivePositions = (math.radians((self.leftDriveEncoder.getPosition() / self.DRIVE_GEARING) * 360)* self.WHEEL_RADIUS)
+        buf.leftDriveSpeedMeasured = (math.radians((self.leftDriveEncoder.getVelocity() / self.DRIVE_GEARING) * 360)* self.WHEEL_RADIUS/ 60)
 
-        for i in range(2):
-            e = self.leftDriveEncoders[i]
-            buf.leftDrivePositions[i] = (
-                math.radians((e.getPosition() / self.DRIVE_GEARING) * 360)
-                * self.WHEEL_RADIUS
-            )
-            buf.leftDriveSpeedMeasured[i] = (
-                math.radians((e.getVelocity() / self.DRIVE_GEARING) * 360)
-                * self.WHEEL_RADIUS
-                / 60
-            )
+        # right drive encoder
+        buf.rightDrivePositions = (math.radians((self.rightDriveEncoder.getPosition() / self.DRIVE_GEARING) * 360)* self.WHEEL_RADIUS)
+        buf.rightDriveSpeedMeasured = (math.radians((self.rightDriveEncoder.getVelocity() / self.DRIVE_GEARING) * 360)* self.WHEEL_RADIUS/ 60)
 
-        for i in range(2):
-            e = self.rightDriveEncoders[i]
-            buf.rightDrivePositions[i] = (
-                math.radians((e.getPosition() / self.DRIVE_GEARING) * 360)
-                * self.WHEEL_RADIUS
-            )
-            buf.rightDriveSpeedMeasured[i] = (
-                math.radians((e.getVelocity() / self.DRIVE_GEARING) * 360)
-                * self.WHEEL_RADIUS
-                / 60
-            )
-
+        # mechanism stuff
         self.intakePivot.setVoltage(buf.intakePivotVolts)
         buf.intakePivotAngle = (
             self.intakePivotEncoder.getPosition()

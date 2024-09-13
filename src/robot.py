@@ -18,22 +18,24 @@ class RobotInputs:
     def __init__(self) -> None:
         self.driveCtrlr = wpilib.XboxController(0)
         self.armCtrlr = wpilib.XboxController(1)
-        self.buttonPanel = wpilib.Joystick(4)
+        self.buttonPanel = wpilib.Joystick(2)
 
         self.driveScalar = CircularScalar(0.06, 1)
         self.turningScalar = CircularScalar(0.1, 1)
         self.manualAimScalar = Scalar(deadZone=0.1)
 
-        self.driveX: float = 0.0
-        self.driveY: float = 0.0
-        self.turningX: float = 0.0
-        self.turningY: float = 0.0
+        self.driveLeft: float = 0.0
+        self.driveRight: float = 0.0
         self.speedCtrl: float = 0.0
         self.gyroReset: bool = False
-        self.absToggle: bool = False
 
     def update(self) -> None:
-        pass
+        self.driveLeft = -self.driveCtrlr.getLeftY()
+        self.driveRight = -self.driveCtrlr.getRightY()
+        
+        self.gyroReset = self.driveCtrlr.getStartButtonPressed()
+
+
 
 
 class Robot(wpilib.TimedRobot):
@@ -78,7 +80,11 @@ class Robot(wpilib.TimedRobot):
 
         self.time = TimeData(self.time)
 
+        self.table.putNumber("DriveLeftInput", self.input.driveLeft)
+        self.table.putNumber("DriveRightInput", self.input.driveRight)
+
         self.hal.publish(self.table)
+        self.input.update()
 
         updatePIDsInNT()
 
@@ -89,16 +95,11 @@ class Robot(wpilib.TimedRobot):
         self.input.update()
         self.hal.stopMotors()
 
-        speedControlEdited = lerp(1, 5.0, self.input.speedCtrl)
-        turnScalar = 6
+        #constant (change in code for now)
+        driveScaler = .5
 
-        driveVector = Translation2d(
-            self.input.driveX * speedControlEdited,
-            self.input.driveY * speedControlEdited,
-        )
-        turnVector = Translation2d(
-            self.input.turningY, self.input.turningX
-        )  # for pid only
+        self.hal.leftDrivePercent = self.input.driveLeft * driveScaler
+        self.hal.rightDrivePercent = self.input.driveRight * driveScaler
 
         self.hardware.update(self.hal, self.time)
 
