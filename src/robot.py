@@ -41,13 +41,13 @@ class RobotInputs:
 class Robot(wpilib.TimedRobot):
     def robotInit(self) -> None:
         self.time = TimeData(None)
-        self.hal = robotHAL.RobotHALBuffer()
+        #self.hal = robotHAL.RobotHALBuffer()
         self.hardware: robotHAL.RobotHAL | RobotSimHAL
         if self.isSimulation():
             self.hardware = RobotSimHAL()
         else:
             self.hardware = robotHAL.RobotHAL()
-        self.hardware.update(self.hal, self.time)
+        #self.hardware.update(self.hal, self.time)
 
         self.table = NetworkTableInstance.getDefault().getTable("telemetry")
 
@@ -83,7 +83,7 @@ class Robot(wpilib.TimedRobot):
         self.table.putNumber("DriveLeftInput", self.input.driveLeft)
         self.table.putNumber("DriveRightInput", self.input.driveRight)
 
-        self.hal.publish(self.table)
+        #self.hal.publish(self.table)
         self.input.update()
 
         updatePIDsInNT()
@@ -93,15 +93,15 @@ class Robot(wpilib.TimedRobot):
 
     def teleopPeriodic(self) -> None:
         self.input.update()
-        self.hal.stopMotors()
+        #self.hal.stopMotors()
 
         #constant (change in code for now)
         driveScaler = .5
 
-        self.hal.leftDrivePercent = self.input.driveLeft * driveScaler
-        self.hal.rightDrivePercent = self.input.driveRight * driveScaler
+        #self.hal.leftDrivePercent = self.input.driveLeft * driveScaler
+        #self.hal.rightDrivePercent = self.input.driveRight * driveScaler
 
-        self.hardware.update(self.hal, self.time)
+        #self.hardware.update(self.hal, self.time)
 
     def autonomousInit(self) -> None:
         # when simulating, initalize sim to have a preloaded ring
@@ -110,13 +110,15 @@ class Robot(wpilib.TimedRobot):
             pass
 
     def autonomousPeriodic(self) -> None:
-        self.hal.stopMotors()
-        self.hardware.update(self.hal, self.time)
+        #self.hal.stopMotors()
+        #self.hardware.update(self.hal, self.time)
+        pass
 
     def disabledInit(self) -> None:
         self.disabledPeriodic()
 
     def disabledPeriodic(self) -> None:
-        self.hal.stopMotors()
+        #self.hal.stopMotors()
 
-        self.hardware.update(self.hal, self.time)
+        #self.hardware.update(self.hal, self.time)
+        pass
