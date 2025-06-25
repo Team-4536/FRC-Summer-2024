@@ -73,9 +73,15 @@ class RobotHAL:
         # create motors
          # the motor controllers are on follower mode, so 2 will follow 1, and 4 will follow 3
         self.leftDriveMotor: rev.CANSparkMax = rev.CANSparkMax(1, rev.CANSparkMax.MotorType.kBrushless)
+        self.leftDriveMotor2: rev.CANSparkMax = rev.CANSparkMax(2, rev.CANSparkMax.MotorType.kBrushless)
         self.rightDriveMotor: rev.CANSparkMax = rev.CANSparkMax(3, rev.CANSparkMax.MotorType.kBrushless)
+        self.rightDriveMotor2: rev.CANSparkMax = rev.CANSparkMax(4, rev.CANSparkMax.MotorType.kBrushless)
+
+        self.leftDriveMotor2.follow(self.leftDriveMotor)
+        self.rightDriveMotor2.follow(self.rightDriveMotor)
 
         # create drive encoders and reset positions
+        """
         self.leftDriveEncoder: rev.SparkRelativeEncoder = self.leftDriveMotor.getEncoder()
         self.rightDriveEncoder: rev.SparkRelativeEncoder = self.rightDriveMotor.getEncoder()
         self.leftDriveEncoder.setPosition(0)
@@ -131,7 +137,7 @@ class RobotHAL:
     # angle expected in CCW radians
     def resetGyroToAngle(self, angleRads: float) -> None:
         self.gyro.reset()
-        self.gyro.setAngleAdjustment(-math.degrees(angleRads))
+        self.gyro.setAngleAdjustment(-math.degrees(angleRads))"""
 
     def update(self, buf: RobotHALBuffer, time: TimeData) -> None:
         prev = self.prev
@@ -139,7 +145,7 @@ class RobotHAL:
 
         self.leftDriveMotor.set(buf.leftDrivePercent)
         self.rightDriveMotor.set(buf.rightDrivePercent)
-
+        """
         # left drive encoder
         buf.leftDrivePositions = (math.radians((self.leftDriveEncoder.getPosition() / self.DRIVE_GEARING) * 360)* self.WHEEL_RADIUS)
         buf.leftDriveSpeedMeasured = (math.radians((self.leftDriveEncoder.getVelocity() / self.DRIVE_GEARING) * 360)* self.WHEEL_RADIUS/ 60)
@@ -195,5 +201,6 @@ class RobotHAL:
             * 2
             / self.SHOOTER_BOTTOM_MOTOR_GEARING
         )
-
+        
         buf.yaw = math.radians(-self.gyro.getAngle())
+        """
