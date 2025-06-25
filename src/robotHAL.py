@@ -71,11 +71,19 @@ class RobotHAL:
         self.prev: RobotHALBuffer = RobotHALBuffer()
 
         # create motors
-         # the motor controllers are on follower mode, so 2 will follow 1, and 4 will follow 3
-        self.leftDriveMotor: rev.CANSparkMax = rev.CANSparkMax(1, rev.CANSparkMax.MotorType.kBrushless)
-        self.leftDriveMotor2: rev.CANSparkMax = rev.CANSparkMax(2, rev.CANSparkMax.MotorType.kBrushless)
-        self.rightDriveMotor: rev.CANSparkMax = rev.CANSparkMax(3, rev.CANSparkMax.MotorType.kBrushless)
-        self.rightDriveMotor2: rev.CANSparkMax = rev.CANSparkMax(4, rev.CANSparkMax.MotorType.kBrushless)
+        # the motor controllers are on follower mode, so 2 will follow 1, and 4 will follow 3
+        self.leftDriveMotor: rev.CANSparkMax = rev.CANSparkMax(
+            1, rev.CANSparkMax.MotorType.kBrushless
+        )
+        self.leftDriveMotor2: rev.CANSparkMax = rev.CANSparkMax(
+            2, rev.CANSparkMax.MotorType.kBrushless
+        )
+        self.rightDriveMotor: rev.CANSparkMax = rev.CANSparkMax(
+            3, rev.CANSparkMax.MotorType.kBrushless
+        )
+        self.rightDriveMotor2: rev.CANSparkMax = rev.CANSparkMax(
+            4, rev.CANSparkMax.MotorType.kBrushless
+        )
 
         self.leftDriveMotor2.follow(self.leftDriveMotor)
         self.rightDriveMotor2.follow(self.rightDriveMotor)

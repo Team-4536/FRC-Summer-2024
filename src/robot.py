@@ -33,21 +33,19 @@ class RobotInputs:
 
         self.driveDeadzone = 0.07
 
-        #left
+        # left
         if abs(self.driveCtrlr.getLeftY()) > self.driveDeadzone:
             self.driveLeft = -self.driveCtrlr.getLeftY()
         else:
-            self.driveLeft = 0        
+            self.driveLeft = 0
 
-        #right  
+        # right
         if abs(self.driveCtrlr.getRightY()) > self.driveDeadzone:
             self.driveRight = -self.driveCtrlr.getRightY()
         else:
             self.driveRight = 0
-        
+
         self.gyroReset = self.driveCtrlr.getStartButtonPressed()
-
-
 
 
 class Robot(wpilib.TimedRobot):
@@ -110,7 +108,7 @@ class Robot(wpilib.TimedRobot):
         self.input.update()
         self.hal.stopMotors()
 
-        #constant (change in code for now)
+        # constant (change in code for now)
         driveScaler = 1
 
         self.hal.leftDrivePercent = self.input.driveLeft * driveScaler
@@ -120,13 +118,13 @@ class Robot(wpilib.TimedRobot):
 
     def autonomousInit(self) -> None:
         # when simulating, initalize sim to have a preloaded ring
-        #if isinstance(self.hardware, RobotSimHAL):
+        # if isinstance(self.hardware, RobotSimHAL):
 
-            pass
+        pass
 
     def autonomousPeriodic(self) -> None:
         self.hal.stopMotors()
-        #self.hardware.update(self.hal, self.time)
+        # self.hardware.update(self.hal, self.time)
         pass
 
     def disabledInit(self) -> None:
