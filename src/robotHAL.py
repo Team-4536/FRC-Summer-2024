@@ -88,6 +88,8 @@ class RobotHAL:
         self.leftDriveMotor2.follow(self.leftDriveMotor)
         self.rightDriveMotor2.follow(self.rightDriveMotor)
 
+        self.leftDriveMotor2.setInverted(True)
+
         # create drive encoders and reset positions
         """
         self.leftDriveEncoder: rev.SparkRelativeEncoder = self.leftDriveMotor.getEncoder()

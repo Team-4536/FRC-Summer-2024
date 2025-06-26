@@ -109,7 +109,7 @@ class Robot(wpilib.TimedRobot):
         self.hal.stopMotors()
 
         # constant (change in code for now)
-        driveScaler = 1
+        driveScaler = 0.5
 
         self.hal.leftDrivePercent = self.input.driveLeft * driveScaler
         self.hal.rightDrivePercent = self.input.driveRight * driveScaler
